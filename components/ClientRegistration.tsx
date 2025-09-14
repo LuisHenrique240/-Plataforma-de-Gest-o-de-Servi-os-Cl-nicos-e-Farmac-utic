@@ -1,0 +1,274 @@
+import { useState } from 'react';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { UserPlus, ArrowLeft } from 'lucide-react';
+import { FormValidator, useFormValidation } from './FormValidation';
+import { FeedbackMessage, useFeedback } from './FeedbackMessage';
+
+interface ClientRegistrationProps {
+  onRegister: (data: any) => void;
+  onBack: () => void;
+  pharmacistName: string;
+}
+
+export function ClientRegistration({ onRegister, onBack, pharmacistName }: ClientRegistrationProps) {
+  const [formData, setFormData] = useState({
+    name: '',
+    birthDate: '',
+    gender: '',
+    address: '',
+    contact: ''
+  });
+  const { errors, validateField, clearErrors, hasErrors } = useFormValidation();
+  const { messages, success, error, removeMessage } = useFeedback();
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validar todos os campos
+    const validations = [
+      validateField('name', formData.name, FormValidator.validateName),
+      validateField('birthDate', formData.birthDate, FormValidator.validateBirthDate),
+      validateField('gender', formData.gender, FormValidator.validateGender),
+      validateField('address', formData.address, FormValidator.validateAddress),
+      validateField('contact', formData.contact, FormValidator.validatePhone)
+    ];
+
+    const isValid = validations.every(Boolean);
+
+    if (!isValid) {
+      error('Por favor, corrija os erros no formulário');
+      return;
+    }
+
+    try {
+      // Gerar ID do cliente
+      const clientId = 'CLI' + Math.floor(10000 + Math.random() * 90000).toString();
+      
+      const clientData = {
+        ...formData,
+        contact: FormValidator.formatPhone(formData.contact),
+        clientId,
+        id: Date.now().toString()
+      };
+
+      // Salvar no localStorage
+      const storedClients = JSON.parse(localStorage.getItem('clients') || '[]');
+      storedClients.push(clientData);
+      localStorage.setItem('clients', JSON.stringify(storedClients));
+
+      success('Cliente cadastrado com sucesso!');
+      clearErrors();
+      onRegister(clientData);
+    } catch (err) {
+      error('Erro ao cadastrar cliente. Tente novamente.');
+    }
+  };
+
+  const updateFormData = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    
+    // Validação em tempo real
+    setTimeout(() => {
+      switch (field) {
+        case 'name':
+          validateField(field, value, FormValidator.validateName);
+          break;
+        case 'birthDate':
+          validateField(field, value, FormValidator.validateBirthDate);
+          break;
+        case 'gender':
+          validateField(field, value, FormValidator.validateGender);
+          break;
+        case 'address':
+          validateField(field, value, FormValidator.validateAddress);
+          break;
+        case 'contact':
+          validateField(field, value, FormValidator.validatePhone);
+          break;
+      }
+    }, 500);
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-green-50 px-4 py-8 relative overflow-hidden">
+      {/* Decorative waves */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-32 -right-24 w-96 h-96 bg-blue-100/30 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-24 -left-32 w-80 h-80 bg-green-100/30 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/2 right-1/4 w-64 h-64 bg-blue-200/20 rounded-full blur-2xl"></div>
+      </div>
+
+      {/* Decorative border waves */}
+      <div className="absolute top-0 left-0 right-0 h-3 bg-gradient-to-r from-blue-400 via-green-400 to-blue-400">
+        <div className="h-full bg-gradient-to-r from-blue-500 via-green-500 to-blue-500 rounded-b-3xl transform scale-x-125 origin-center"></div>
+      </div>
+      <div className="absolute bottom-0 left-0 right-0 h-3 bg-gradient-to-r from-green-400 via-blue-400 to-green-400">
+        <div className="h-full bg-gradient-to-r from-green-500 via-blue-500 to-green-500 rounded-t-3xl transform scale-x-125 origin-center"></div>
+      </div>
+
+      <Card className="w-full max-w-md relative z-10 border-2 border-blue-100/50 shadow-xl">
+        <CardHeader className="text-center bg-gradient-to-br from-blue-50 to-green-50">
+          <div className="flex items-center justify-center text-sm text-blue-600 mb-4 bg-white/70 px-3 py-1 rounded-full mx-auto w-fit">
+            <span>Farmacêutico: {pharmacistName}</span>
+          </div>
+          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-500 to-green-500 rounded-full flex items-center justify-center mb-4 shadow-lg">
+            <UserPlus className="w-8 h-8 text-white" />
+          </div>
+          <CardTitle className="text-blue-800">Cadastro - Cliente</CardTitle>
+          <p className="text-blue-600">
+            Preencha os dados do cliente
+          </p>
+        </CardHeader>
+        <CardContent className="bg-white">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name" className="text-blue-700 required">Nome Completo *</Label>
+              <Input
+                id="name"
+                name="name"
+                type="text"
+                value={formData.name}
+                onChange={(e) => updateFormData('name', e.target.value)}
+                placeholder="Digite o nome completo do paciente"
+                className={`border-blue-200 focus:border-blue-400 focus:ring-blue-400 ${
+                  errors.name ? 'border-red-300 focus:border-red-400 focus:ring-red-400' : ''
+                }`}
+                required
+                aria-describedby={errors.name ? "name-error" : undefined}
+              />
+              {errors.name && (
+                <p id="name-error" className="text-red-500 text-sm flex items-center gap-1">
+                  <span>⚠</span> {errors.name}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="birthDate" className="text-green-700 required">Data de Nascimento *</Label>
+              <Input
+                id="birthDate"
+                name="birthDate"
+                type="date"
+                value={formData.birthDate}
+                onChange={(e) => updateFormData('birthDate', e.target.value)}
+                className={`border-green-200 focus:border-green-400 focus:ring-green-400 ${
+                  errors.birthDate ? 'border-red-300 focus:border-red-400 focus:ring-red-400' : ''
+                }`}
+                required
+                max={new Date().toISOString().split('T')[0]}
+                aria-describedby={errors.birthDate ? "birthDate-error" : undefined}
+              />
+              {errors.birthDate && (
+                <p id="birthDate-error" className="text-red-500 text-sm flex items-center gap-1">
+                  <span>⚠</span> {errors.birthDate}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="gender" className="text-blue-700 required">Sexo *</Label>
+              <Select 
+                value={formData.gender} 
+                onValueChange={(value) => updateFormData('gender', value)}
+                required
+              >
+                <SelectTrigger className={`border-blue-200 focus:border-blue-400 focus:ring-blue-400 ${
+                  errors.gender ? 'border-red-300 focus:border-red-400 focus:ring-red-400' : ''
+                }`}>
+                  <SelectValue placeholder="Selecione o sexo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="M">Masculino</SelectItem>
+                  <SelectItem value="F">Feminino</SelectItem>
+                  <SelectItem value="O">Outro</SelectItem>
+                </SelectContent>
+              </Select>
+              {errors.gender && (
+                <p className="text-red-500 text-sm flex items-center gap-1">
+                  <span>⚠</span> {errors.gender}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="address" className="text-green-700 required">Endereço *</Label>
+              <Input
+                id="address"
+                name="address"
+                type="text"
+                value={formData.address}
+                onChange={(e) => updateFormData('address', e.target.value)}
+                placeholder="Digite o endereço completo"
+                className={`border-green-200 focus:border-green-400 focus:ring-green-400 ${
+                  errors.address ? 'border-red-300 focus:border-red-400 focus:ring-red-400' : ''
+                }`}
+                required
+                aria-describedby={errors.address ? "address-error" : undefined}
+              />
+              {errors.address && (
+                <p id="address-error" className="text-red-500 text-sm flex items-center gap-1">
+                  <span>⚠</span> {errors.address}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="contact" className="text-blue-700 required">Contato *</Label>
+              <Input
+                id="contact"
+                name="contact"
+                type="tel"
+                value={formData.contact}
+                onChange={(e) => updateFormData('contact', e.target.value)}
+                placeholder="(11) 99999-9999"
+                className={`border-blue-200 focus:border-blue-400 focus:ring-blue-400 ${
+                  errors.contact ? 'border-red-300 focus:border-red-400 focus:ring-red-400' : ''
+                }`}
+                required
+                aria-describedby={errors.contact ? "contact-error" : undefined}
+              />
+              {errors.contact && (
+                <p id="contact-error" className="text-red-500 text-sm flex items-center gap-1">
+                  <span>⚠</span> {errors.contact}
+                </p>
+              )}
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 pt-4">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={onBack}
+                className="flex-1 border-green-300 text-green-700 hover:bg-green-50 order-2 sm:order-1"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Voltar
+              </Button>
+              <Button 
+                type="submit" 
+                className="flex-1 bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 order-1 sm:order-2"
+                disabled={hasErrors}
+              >
+                Cadastrar Paciente
+              </Button>
+            </div>
+          </form>
+
+          {/* Mensagens de feedback */}
+          {messages.map((msg) => (
+            <FeedbackMessage
+              key={msg.id}
+              type={msg.type}
+              message={msg.message}
+              onClose={() => removeMessage(msg.id)}
+            />
+          ))}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
