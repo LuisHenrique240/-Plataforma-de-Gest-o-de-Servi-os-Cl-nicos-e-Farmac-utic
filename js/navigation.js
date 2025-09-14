@@ -46,11 +46,11 @@ function navigateToHome() {
 }
 
 function navigateToPharmacistLogin() {
-  window.location.href = 'farmaceuticos/login.php';
+  window.location.href = '/farmaceuticos/login.php';
 }
 
 function navigateToPharmacistRegister() {
-  window.location.href = 'farmaceuticos/cadastrar.php';
+  window.location.href = '/farmaceuticos/cadastrar.php';
 }
 
 function navigateToClientLogin() {
@@ -60,7 +60,7 @@ function navigateToClientLogin() {
     navigateToHome();
     return;
   }
-  window.location.href = 'pacientes/login.php';
+  window.location.href = '/pacientes/login.php';
 }
 
 function navigateToClientRegister() {
@@ -70,7 +70,7 @@ function navigateToClientRegister() {
     navigateToHome();
     return;
   }
-  window.location.href = 'pacientes/cadastrar.php';
+  window.location.href = '/pacientes/cadastrar.php';
 }
 
 function navigateToDashboard() {
@@ -83,7 +83,7 @@ function navigateToDashboard() {
     return;
   }
   
-  window.location.href = 'dashboard.php';
+  window.location.href = '/dashboard.php';
 }
 
 // Funções de login
