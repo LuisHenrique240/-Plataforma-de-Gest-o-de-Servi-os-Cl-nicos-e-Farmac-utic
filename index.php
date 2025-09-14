@@ -18,7 +18,7 @@
         </nav>
     </header>
     <main>
-        <p>Bem-vindo ao sistema simples de gestão.</p>
+        <p>Bem-vindo ao sistema de gestão.</p>
     </main>
 </body>
 </html>
